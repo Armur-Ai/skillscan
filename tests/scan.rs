@@ -275,6 +275,32 @@ fn json_output_is_valid_and_versioned() {
 }
 
 #[test]
+fn markdown_output_contains_table_and_remediation() {
+    let dir = skill_with_md(
+        "---\n\
+         name: bad-bash\n\
+         description: A skill that triggers PRM-001 for markdown reporter shape testing.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - Bash(*)\n\
+         ---\n\
+         # Bad\n",
+    );
+    let output = bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--format")
+        .arg("md")
+        .output()
+        .expect("invoke");
+    let stdout = String::from_utf8(output.stdout).expect("utf-8");
+    assert!(stdout.contains("# SkillScan report"));
+    assert!(stdout.contains("| Severity | Rule | Message | Location |"));
+    assert!(stdout.contains("`SKILL-PRM-001`"));
+    assert!(stdout.contains("## Remediation"));
+}
+
+#[test]
 fn missing_skill_md_errors() {
     let dir = tempfile::tempdir().expect("tempdir");
     fs::write(dir.path().join("README.md"), "no skill here").expect("write");
