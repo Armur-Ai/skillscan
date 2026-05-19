@@ -7,6 +7,9 @@ mod cmp_002;
 mod cmp_003;
 mod inj_001;
 mod prm_001;
+mod prm_002;
+mod prm_003;
+mod prm_004;
 mod prm_006;
 mod prm_007;
 mod sec_001;
@@ -22,6 +25,9 @@ pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
         Box::new(cmp_002::VersionRule),
         Box::new(cmp_003::LicenseRule),
         Box::new(prm_001::BashWildcardRule),
+        Box::new(prm_002::SensitiveWritePathRule),
+        Box::new(prm_003::SensitiveReadPathRule),
+        Box::new(prm_004::UnscopedWebFetchRule),
         Box::new(prm_006::AllowedToolsMissingRule),
         Box::new(prm_007::ExcessiveToolsRule),
         Box::new(inj_001::ZeroWidthRule),

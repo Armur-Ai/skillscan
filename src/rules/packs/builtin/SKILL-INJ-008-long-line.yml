@@ -1,0 +1,14 @@
+id: SKILL-INJ-008
+name: Suspiciously long single line in markdown content
+severity: medium
+category: injection
+confidence: 65
+message: "Line {line} is over 2000 characters; common smuggling/encoding vehicle."
+remediation: |
+  Long single lines often hide an encoded payload or a stretched-out
+  prompt-injection string. Break the content onto multiple lines, or
+  decode and inspect.
+match:
+  regex: '^.{2000,}$'
+files:
+  - '**/*.md'

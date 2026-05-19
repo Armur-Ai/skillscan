@@ -1,0 +1,17 @@
+id: SKILL-SUP-003
+name: Fetched-then-executed binary
+severity: high
+category: supply-chain
+confidence: 75
+message: "`chmod +x` near a downloaded file at line {line}: `{match}`"
+remediation: |
+  Downloading a file and making it executable in the same script is the
+  canonical "drop a binary and run it" pattern. Vendor the binary, or
+  verify a checksum before chmod.
+match:
+  regex: '\bchmod\s+(?:\+x|0?7\d{2})\s+\S+'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.py'

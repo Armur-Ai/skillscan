@@ -1,0 +1,16 @@
+id: SKILL-OBF-003
+name: Unsafe Python deserialization (pickle/marshal)
+severity: high
+category: obfuscation
+confidence: 90
+message: "Unsafe deserialization at line {line}: `{match}`"
+remediation: |
+  `pickle.loads`, `marshal.loads`, `dill.loads` and `joblib.load` will
+  execute arbitrary code embedded in the input. Switch to a safe format
+  (json, msgpack) or load from a verified source only.
+references:
+  - https://docs.python.org/3/library/pickle.html#module-pickle
+match:
+  regex: '\b(?:pickle|marshal|dill|joblib)\.(?:load|loads)\s*\('
+files:
+  - '**/*.py'

@@ -184,6 +184,22 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-SEC-005",
         include_str!("packs/builtin/SKILL-SEC-005-jwt.yml"),
     ),
+    (
+        "SKILL-INJ-008",
+        include_str!("packs/builtin/SKILL-INJ-008-long-line.yml"),
+    ),
+    (
+        "SKILL-EXF-003",
+        include_str!("packs/builtin/SKILL-EXF-003-credential-dirs.yml"),
+    ),
+    (
+        "SKILL-SUP-003",
+        include_str!("packs/builtin/SKILL-SUP-003-fetch-and-exec.yml"),
+    ),
+    (
+        "SKILL-OBF-003",
+        include_str!("packs/builtin/SKILL-OBF-003-pickle-marshal.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.

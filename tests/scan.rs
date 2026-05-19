@@ -458,6 +458,145 @@ fn user_rule_pack_loads_via_rules_flag() {
 }
 
 #[test]
+fn write_to_sensitive_path_is_flagged() {
+    let dir = skill_with_md(
+        "---\n\
+         name: bad-write\n\
+         description: A skill that requests Write access to /etc for PRM-002 testing.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - Write(/etc/cron.d/foo)\n\
+         ---\n\
+         # Bad Write\n",
+    );
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-PRM-002"));
+}
+
+#[test]
+fn read_ssh_directory_is_flagged() {
+    let dir = skill_with_md(
+        "---\n\
+         name: bad-read\n\
+         description: A skill that requests Read of ~/.ssh for PRM-003 testing.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - Read(~/.ssh/**)\n\
+         ---\n\
+         # Bad Read\n",
+    );
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-PRM-003"));
+}
+
+#[test]
+fn unscoped_webfetch_is_flagged() {
+    let dir = skill_with_md(
+        "---\n\
+         name: bad-web\n\
+         description: A skill with unscoped WebFetch permission for PRM-004 testing coverage.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - WebFetch\n\
+         ---\n\
+         # Bad Web\n",
+    );
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("medium")
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-PRM-004"));
+}
+
+#[test]
+fn credential_dir_read_in_script_is_flagged() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-creds\n\
+             description: A skill whose script reads from ~/.ssh for EXF-003 testing coverage.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad Creds\n",
+        ),
+        ("grab.sh", "#!/bin/bash\ncat ~/.ssh/id_rsa\n"),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-EXF-003"));
+}
+
+#[test]
+fn pickle_loads_in_python_is_flagged() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-pickle\n\
+             description: A skill that uses pickle.loads for unsafe deserialization OBF-003.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad Pickle\n",
+        ),
+        (
+            "load.py",
+            "import pickle, sys\nobj = pickle.loads(sys.stdin.buffer.read())\n",
+        ),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-OBF-003"));
+}
+
+#[test]
+fn long_single_line_is_flagged() {
+    let body = "x".repeat(2100);
+    let md = format!(
+        "---\n\
+         name: long\n\
+         description: A skill with a suspiciously long single line for INJ-008 testing coverage.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - Read\n\
+         ---\n\
+         # Long\n\
+         \n\
+         {body}\n",
+    );
+    let dir = skill_with_md(&md);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("medium")
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-INJ-008"));
+}
+
+#[test]
 fn clipboard_read_is_flagged() {
     let dir = make_skill(&[
         (
