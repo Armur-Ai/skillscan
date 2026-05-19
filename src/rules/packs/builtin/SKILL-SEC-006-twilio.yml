@@ -1,0 +1,17 @@
+id: SKILL-SEC-006
+name: Twilio account SID or API key
+severity: critical
+category: secrets
+confidence: 95
+message: "Twilio credential shape at line {line}."
+remediation: |
+  Twilio account SIDs (AC...) and API keys (SK...) authorize sending SMS
+  and voice calls billed to the account. Rotate in the Twilio console
+  and remove from the bundle. Load from an environment variable at
+  runtime.
+references:
+  - https://www.twilio.com/docs/iam/keys/api-key
+match:
+  regex: '\b(?:AC|SK)[a-f0-9]{32}\b'
+files:
+  - '**/*'

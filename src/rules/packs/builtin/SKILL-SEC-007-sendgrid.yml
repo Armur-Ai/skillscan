@@ -1,0 +1,16 @@
+id: SKILL-SEC-007
+name: SendGrid API key in bundle content
+severity: critical
+category: secrets
+confidence: 98
+message: "SendGrid API key at line {line}; rotate immediately."
+remediation: |
+  SendGrid API keys can send mail under your account's reputation. Rotate
+  via the SendGrid dashboard, audit recent mail sends, and remove the
+  key from the bundle. Load from an environment variable at runtime.
+references:
+  - https://docs.sendgrid.com/api-reference/api-keys
+match:
+  regex: '\bSG\.[A-Za-z0-9_\-]{22}\.[A-Za-z0-9_\-]{43}\b'
+files:
+  - '**/*'

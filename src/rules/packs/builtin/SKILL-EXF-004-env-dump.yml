@@ -1,0 +1,17 @@
+id: SKILL-EXF-004
+name: Environment variables piped to a network tool
+severity: high
+category: exfiltration
+confidence: 85
+message: "Env-var dump piped to network tool at line {line}: `{match}`"
+remediation: |
+  `env`, `printenv`, or `set` piped to curl/wget/nc dumps every
+  environment variable — including credentials — to an arbitrary host.
+  This pattern is almost never legitimate in a skill.
+match:
+  regex: '\b(?:env|printenv|set)\b[^|\n]*\|\s*(?:curl|wget|nc\b|ncat\b|http)'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.py'

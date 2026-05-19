@@ -228,6 +228,22 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-OBF-004",
         include_str!("packs/builtin/SKILL-OBF-004-compile-dynamic.yml"),
     ),
+    (
+        "SKILL-SEC-006",
+        include_str!("packs/builtin/SKILL-SEC-006-twilio.yml"),
+    ),
+    (
+        "SKILL-SEC-007",
+        include_str!("packs/builtin/SKILL-SEC-007-sendgrid.yml"),
+    ),
+    (
+        "SKILL-EXF-004",
+        include_str!("packs/builtin/SKILL-EXF-004-env-dump.yml"),
+    ),
+    (
+        "SKILL-EXF-007",
+        include_str!("packs/builtin/SKILL-EXF-007-netcat.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.

@@ -1,0 +1,17 @@
+id: SKILL-EXF-007
+name: Outbound netcat / ncat connection
+severity: high
+category: exfiltration
+confidence: 75
+message: "Outbound netcat connection at line {line}: `{match}`"
+remediation: |
+  `nc`/`ncat` opens a raw TCP/UDP connection — a classic exfiltration
+  and reverse-shell channel. If you need outbound networking, use a
+  named tool with a documented purpose (curl to an allowlisted host).
+match:
+  regex: '\bnc(?:at)?\s+(?:-[a-zA-Z]+\s+)*[a-zA-Z0-9][a-zA-Z0-9.\-]*\s+\d{1,5}\b'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.py'
