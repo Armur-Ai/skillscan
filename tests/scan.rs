@@ -182,6 +182,68 @@ fn missing_description_fails_on_low_threshold() {
 }
 
 #[test]
+fn sarif_output_has_expected_shape_for_a_finding() {
+    let dir = skill_with_md(
+        "---\n\
+         name: bad-bash\n\
+         description: A skill that triggers PRM-001 for SARIF reporter shape testing.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - Bash(*)\n\
+         ---\n\
+         # Bad\n",
+    );
+    let output = bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--format")
+        .arg("sarif")
+        .output()
+        .expect("invoke");
+
+    let stdout = String::from_utf8(output.stdout).expect("utf-8");
+    let parsed: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+
+    assert_eq!(parsed["version"], "2.1.0");
+    assert!(parsed["$schema"]
+        .as_str()
+        .unwrap()
+        .contains("sarif-schema-2.1.0"));
+
+    let run = &parsed["runs"][0];
+    assert_eq!(run["tool"]["driver"]["name"], "skillscan");
+    assert!(
+        run["tool"]["driver"]["rules"]
+            .as_array()
+            .expect("rules array")
+            .len()
+            >= 25
+    );
+
+    let results = run["results"].as_array().expect("results array");
+    let prm = results
+        .iter()
+        .find(|r| r["ruleId"] == "SKILL-PRM-001")
+        .expect("PRM-001 in results");
+    assert_eq!(prm["level"], "error");
+    assert!(
+        prm["properties"]["security-severity"]
+            .as_str()
+            .unwrap()
+            .parse::<f32>()
+            .unwrap()
+            >= 7.0
+    );
+    assert_eq!(
+        run["invocations"][0]["properties"]["rulesetHash"]
+            .as_str()
+            .expect("rulesetHash")
+            .len(),
+        64
+    );
+}
+
+#[test]
 fn json_output_is_valid_and_versioned() {
     let dir = skill_with_md(
         "---\n\

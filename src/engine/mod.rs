@@ -68,6 +68,17 @@ impl Engine {
         self.rules.len()
     }
 
+    /// Iterate metadata for every loaded rule (in deterministic id order).
+    pub fn rule_metas(&self) -> impl Iterator<Item = &'static RuleMeta> + '_ {
+        self.rules.iter().map(|r| r.meta())
+    }
+
+    /// SHA-256 of the loaded rule set, lowercase hex.
+    #[must_use]
+    pub fn ruleset_hash(&self) -> &str {
+        &self.ruleset_hash
+    }
+
     /// Run every rule against `skill` and collect findings.
     ///
     /// A rule that panics produces a `SKILL-ENG-001` finding rather than crashing the scan.
