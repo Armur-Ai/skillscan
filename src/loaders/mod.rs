@@ -2,3 +2,7 @@
 //!
 //! Phase 1 lands `DirectoryLoader`. Phase 3 adds archive/git/url loaders gated behind
 //! `--allow-network`.
+
+pub mod directory;
+
+pub use directory::DirectoryLoader;

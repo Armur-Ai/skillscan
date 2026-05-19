@@ -2,7 +2,7 @@
 name = "skillscan"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.80"
 authors = ["Armur-AI <hello@armur.ai>"]
 description = "Security scanner for Claude Skills"
 license = "Apache-2.0"
@@ -26,9 +26,9 @@ thiserror = "2.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
+serde_yml = "0.0.12"
 serde_json = "1.0"
-owo-colors = "4.1"
+owo-colors = { version = "4.1", features = ["supports-colors"] }
 walkdir = "2.5"
 ignore = "0.4"
 regex = "1.11"

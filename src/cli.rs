@@ -5,6 +5,12 @@ use std::process::ExitCode;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
+use crate::engine::Engine;
+use crate::loaders::DirectoryLoader;
+use crate::model::Severity;
+use crate::reporters::{json, terminal};
+use crate::rules;
+
 /// Security scanner for Claude Skills.
 #[derive(Parser, Debug)]
 #[command(name = "skillscan", version, about, long_about = None)]
@@ -46,7 +52,7 @@ pub struct ScanArgs {
     #[arg(long, value_enum, default_value_t = FailOn::High)]
     pub fail_on: FailOn,
 
-    /// Path to an extra rule pack (directory of YAML rules).
+    /// Path to an extra rule pack (directory of YAML rules). Not yet wired up.
     #[arg(long)]
     pub rules: Option<PathBuf>,
 
@@ -54,7 +60,7 @@ pub struct ScanArgs {
     #[arg(long)]
     pub quiet: bool,
 
-    /// Print per-rule timing information after the scan.
+    /// Print per-rule timing information after the scan. Not yet wired up.
     #[arg(long)]
     pub profile: bool,
 }
@@ -80,29 +86,66 @@ pub enum FailOn {
     Info,
 }
 
+impl From<FailOn> for Severity {
+    fn from(f: FailOn) -> Self {
+        match f {
+            FailOn::Critical => Severity::Critical,
+            FailOn::High => Severity::High,
+            FailOn::Medium => Severity::Medium,
+            FailOn::Low => Severity::Low,
+            FailOn::Info => Severity::Info,
+        }
+    }
+}
+
 impl Cli {
     /// Dispatch the parsed CLI to the right command. Returns the desired process exit code.
     ///
     /// # Errors
-    /// Returns an error if a command fails before it can produce a report.
+    /// Returns an error if a command fails before it can produce a report (e.g. the target path
+    /// does not exist).
     pub fn run(self) -> anyhow::Result<ExitCode> {
-        match self.command {
-            Command::Scan(args) => {
-                // Phase 0 placeholder: loader/engine/reporter wiring lands in Phase 1.
-                println!(
-                    "skillscan v{} — target: {}",
-                    crate::VERSION,
-                    args.path.display()
-                );
-                println!("(no rules loaded yet — see IMPLEMENTATION_PLAN.md Phase 1)");
-                Ok(ExitCode::from(0))
-            }
+        let Cli {
+            command,
+            no_color,
+            log_level: _,
+        } = self;
+        if no_color {
+            owo_colors::set_override(false);
+        }
+        match command {
+            Command::Scan(args) => run_scan(args),
             Command::Rules { action } => match action {
                 RulesAction::List => {
-                    println!("No rules loaded yet.");
+                    list_rules();
                     Ok(ExitCode::from(0))
                 }
             },
         }
     }
+}
+
+fn run_scan(args: ScanArgs) -> anyhow::Result<ExitCode> {
+    let skill = DirectoryLoader::new(&args.path).load()?;
+    let engine = Engine::new(rules::builtin_rules());
+    let report = engine.scan(&skill);
+
+    match args.format {
+        Format::Term => terminal::print(&report, args.quiet),
+        Format::Json => json::print(&report)?,
+    }
+
+    let threshold: Severity = args.fail_on.into();
+    let exit_code = if report.count_at_or_above(threshold) > 0 {
+        2
+    } else {
+        0
+    };
+    Ok(ExitCode::from(exit_code))
+}
+
+fn list_rules() {
+    let rules = rules::builtin_rules();
+    let engine = Engine::new(rules);
+    println!("Loaded {} rules.", engine.rule_count());
 }

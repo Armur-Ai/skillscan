@@ -22,5 +22,5 @@ pub struct Frontmatter {
     pub license: Option<String>,
 
     #[serde(flatten)]
-    pub extra: BTreeMap<String, serde_yaml::Value>,
+    pub extra: BTreeMap<String, serde_yml::Value>,
 }

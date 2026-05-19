@@ -29,6 +29,20 @@ impl FileKind {
             _ => Self::Other,
         }
     }
+
+    #[must_use]
+    pub fn is_text(self) -> bool {
+        matches!(
+            self,
+            Self::SkillMd
+                | Self::Markdown
+                | Self::Python
+                | Self::Bash
+                | Self::Yaml
+                | Self::Json
+                | Self::Other
+        )
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -39,6 +53,8 @@ pub struct SkillFile {
     pub rel_path: PathBuf,
     pub kind: FileKind,
     pub size_bytes: u64,
+    /// UTF-8 contents for text files. `None` for binaries or files that failed to decode.
+    pub content: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -46,6 +62,4 @@ pub struct Skill {
     pub root: PathBuf,
     pub files: Vec<SkillFile>,
     pub frontmatter: Frontmatter,
-    /// Raw content of `SKILL.md` after the frontmatter fence, retained for content rules.
-    pub skill_md_body: String,
 }
