@@ -1,0 +1,99 @@
+name: SkillScan
+description: Audit Claude Skills for vulnerabilities (prompt injection, tool abuse, exfiltration, supply-chain risks).
+author: Armur-AI
+branding:
+  icon: shield
+  color: red
+
+inputs:
+  path:
+    description: Path to the skill directory to scan.
+    required: true
+    default: '.'
+  fail-on:
+    description: Severity threshold that causes a non-zero exit (critical/high/medium/low/info).
+    required: false
+    default: 'high'
+  format:
+    description: Output format (term/json/sarif/md).
+    required: false
+    default: 'term'
+  rules:
+    description: Optional path to a custom YAML rule pack directory.
+    required: false
+    default: ''
+  sarif-upload:
+    description: When true and format=sarif, upload the SARIF file to GitHub Code Scanning.
+    required: false
+    default: 'false'
+  version:
+    description: Version of skillscan to install via `cargo install` (defaults to latest).
+    required: false
+    default: ''
+
+outputs:
+  exit-code:
+    description: Exit code of the scan (0 = clean, 2 = findings at/above threshold).
+    value: ${{ steps.scan.outputs.exit-code }}
+  sarif-path:
+    description: Path to the generated SARIF file (when format=sarif).
+    value: ${{ steps.scan.outputs.sarif-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+        key: skillscan-cargo-${{ runner.os }}-${{ inputs.version }}
+
+    - name: Install skillscan
+      shell: bash
+      run: |
+        set -euo pipefail
+        if command -v skillscan >/dev/null 2>&1; then
+          echo "skillscan already installed: $(skillscan --version)"
+        else
+          if [ -n "${{ inputs.version }}" ]; then
+            cargo install --locked skillscan --version "${{ inputs.version }}"
+          else
+            cargo install --locked skillscan
+          fi
+        fi
+        skillscan --version
+
+    - name: Run scan
+      id: scan
+      shell: bash
+      run: |
+        set +e
+        FORMAT="${{ inputs.format }}"
+        ARGS=(scan "${{ inputs.path }}" --fail-on "${{ inputs.fail-on }}" --format "$FORMAT")
+        if [ -n "${{ inputs.rules }}" ]; then
+          ARGS+=(--rules "${{ inputs.rules }}")
+        fi
+        if [ "$FORMAT" = "sarif" ]; then
+          skillscan "${ARGS[@]}" > skillscan.sarif
+          EC=$?
+          echo "sarif-path=skillscan.sarif" >> "$GITHUB_OUTPUT"
+        else
+          skillscan "${ARGS[@]}"
+          EC=$?
+        fi
+        echo "exit-code=$EC" >> "$GITHUB_OUTPUT"
+        exit $EC
+
+    - name: Upload SARIF to GitHub Code Scanning
+      if: always() && inputs.sarif-upload == 'true' && inputs.format == 'sarif'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: skillscan.sarif
+        category: skillscan
