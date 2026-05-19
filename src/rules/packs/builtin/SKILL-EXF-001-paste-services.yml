@@ -1,0 +1,14 @@
+id: SKILL-EXF-001
+name: Outbound URL to a paste/file-share service
+severity: high
+category: exfiltration
+confidence: 85
+message: "Paste/file-share URL at line {line}: `{match}`"
+remediation: |
+  URLs pointing at pastebin-style services or anonymous file hosts are
+  classic exfiltration sinks. Move the value to a runtime-supplied env
+  var the user must opt into, or remove the URL.
+match:
+  regex: 'https?://(?:pastebin\.com|gist\.githubusercontent\.com|paste\.ee|hastebin\.com|0bin\.net|controlc\.com|justpaste\.it|rentry\.co|transfer\.sh|file\.io|anonfiles\.com|wetransfer\.com|catbox\.moe|burpcollaborator\.net|interact\.sh)/[\w./?#&=\-]+'
+files:
+  - '**/*'

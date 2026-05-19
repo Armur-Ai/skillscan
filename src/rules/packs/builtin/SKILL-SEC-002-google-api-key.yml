@@ -1,0 +1,16 @@
+id: SKILL-SEC-002
+name: Google API key in bundle content
+severity: critical
+category: secrets
+confidence: 95
+message: "Google API key shape detected at line {line}."
+remediation: |
+  Google API keys (prefix `AIza`) provide quota-billed access to Google
+  Cloud services. Rotate the key in the Google Cloud Console and remove
+  it from the bundle; load it from an environment variable at runtime.
+references:
+  - https://cloud.google.com/docs/authentication/api-keys
+match:
+  regex: '\bAIza[0-9A-Za-z_\-]{35}\b'
+files:
+  - '**/*'

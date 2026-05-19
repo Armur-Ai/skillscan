@@ -200,6 +200,18 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-OBF-003",
         include_str!("packs/builtin/SKILL-OBF-003-pickle-marshal.yml"),
     ),
+    (
+        "SKILL-EXF-001",
+        include_str!("packs/builtin/SKILL-EXF-001-paste-services.yml"),
+    ),
+    (
+        "SKILL-SEC-002",
+        include_str!("packs/builtin/SKILL-SEC-002-google-api-key.yml"),
+    ),
+    (
+        "SKILL-OBF-002",
+        include_str!("packs/builtin/SKILL-OBF-002-hex-blob.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.

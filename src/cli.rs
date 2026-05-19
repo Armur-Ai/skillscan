@@ -154,5 +154,30 @@ fn run_scan(args: ScanArgs) -> anyhow::Result<ExitCode> {
 fn list_rules() {
     let rules = rules::builtin_rules();
     let engine = Engine::new(rules);
-    println!("Loaded {} rules.", engine.rule_count());
+    println!("Loaded {} rules.\n", engine.rule_count());
+    println!("{:<16} {:<9} {:<14}  NAME", "ID", "SEVERITY", "CATEGORY");
+    println!("{}", "-".repeat(80));
+    for meta in engine.rule_metas() {
+        println!(
+            "{:<16} {:<9} {:<14}  {}",
+            meta.id,
+            meta.severity.as_str(),
+            category_str(meta.category),
+            meta.name,
+        );
+    }
+}
+
+fn category_str(c: crate::engine::Category) -> &'static str {
+    use crate::engine::Category;
+    match c {
+        Category::Injection => "injection",
+        Category::Permissions => "permissions",
+        Category::Exfiltration => "exfiltration",
+        Category::SupplyChain => "supply-chain",
+        Category::Obfuscation => "obfuscation",
+        Category::Secrets => "secrets",
+        Category::Compliance => "compliance",
+        Category::CodeQuality => "code-quality",
+    }
 }

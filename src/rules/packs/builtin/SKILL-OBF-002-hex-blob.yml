@@ -1,0 +1,18 @@
+id: SKILL-OBF-002
+name: Long hex blob in content
+severity: medium
+category: obfuscation
+confidence: 65
+message: "Long hex-encoded blob at line {line} ({line} chars); may be an encoded payload."
+remediation: |
+  Long hex strings are a common encoding for hidden payloads. Decode and
+  inspect. If the value is legitimate binary data (a hash, a certificate
+  fingerprint), shorten it or move it to a separate file.
+match:
+  regex: '\b[0-9a-fA-F]{200,}\b'
+files:
+  - '**/*.md'
+  - '**/*.py'
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
