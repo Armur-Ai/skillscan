@@ -305,6 +305,159 @@ fn eval_call_in_python_is_flagged() {
 }
 
 #[test]
+fn version_missing_is_flagged() {
+    let dir = skill_with_md(
+        "---\n\
+         name: no-version\n\
+         description: A skill missing the version field for CMP-002 testing coverage.\n\
+         allowed-tools:\n  - Read\n\
+         license: Apache-2.0\n\
+         ---\n\
+         # No Version\n",
+    );
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("low")
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CMP-002"));
+}
+
+#[test]
+fn license_missing_is_flagged() {
+    let dir = skill_with_md(
+        "---\n\
+         name: no-license\n\
+         description: A skill missing the license declaration for CMP-003 testing coverage.\n\
+         version: 0.1.0\n\
+         allowed-tools:\n  - Read\n\
+         ---\n\
+         # No License\n",
+    );
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("low")
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CMP-003"));
+}
+
+#[test]
+fn license_file_satisfies_cmp_003() {
+    // A LICENSE file at the skill root counts even if frontmatter doesn't declare a license.
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: licensed-by-file\n\
+             description: A skill that ships a LICENSE file for CMP-003 satisfaction.\n\
+             version: 0.1.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Licensed\n",
+        ),
+        ("LICENSE", "MIT License — example."),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("low")
+        .assert()
+        .success();
+}
+
+#[test]
+fn allowed_tools_missing_is_flagged() {
+    let dir = skill_with_md(
+        "---\n\
+         name: no-tools\n\
+         description: A skill that does not declare allowed-tools for PRM-006 testing.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         ---\n\
+         # No Tools\n",
+    );
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("medium")
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-PRM-006"));
+}
+
+#[test]
+fn excessive_tool_count_is_flagged() {
+    let mut tools = String::new();
+    for i in 1..=16 {
+        tools.push_str(&format!("  - Bash(cmd-{i})\n"));
+    }
+    let md = format!(
+        "---\n\
+         name: too-many-tools\n\
+         description: A skill that declares more than 15 allowed-tools for PRM-007 testing.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n{tools}\
+         ---\n\
+         # Too Many\n",
+    );
+    let dir = skill_with_md(&md);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .arg("--fail-on")
+        .arg("medium")
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-PRM-007"));
+}
+
+#[test]
+fn user_rule_pack_loads_via_rules_flag() {
+    let skill = skill_with_md(
+        "---\n\
+         name: user-rule\n\
+         description: A skill that should be flagged by a user-supplied custom rule pack.\n\
+         version: 0.1.0\n\
+         license: Apache-2.0\n\
+         allowed-tools:\n  - Read\n\
+         ---\n\
+         # Test\n\
+         \n\
+         This skill contains the phrase MAGIC-CANARY-1234 that the user rule looks for.\n",
+    );
+    let pack = tempfile::tempdir().expect("tempdir");
+    fs::write(
+        pack.path().join("magic.yml"),
+        "id: ORG-INJ-001\n\
+         name: Custom magic-canary detector\n\
+         severity: critical\n\
+         category: injection\n\
+         message: \"Magic canary at line {line}: `{match}`\"\n\
+         remediation: Remove the canary.\n\
+         match:\n  regex: 'MAGIC-CANARY-\\d+'\n\
+         files:\n  - '**/*.md'\n",
+    )
+    .expect("write user rule");
+
+    bin()
+        .arg("scan")
+        .arg(skill.path())
+        .arg("--rules")
+        .arg(pack.path())
+        .assert()
+        .code(2)
+        .stdout(contains("ORG-INJ-001"));
+}
+
+#[test]
 fn clipboard_read_is_flagged() {
     let dir = make_skill(&[
         (

@@ -186,6 +186,43 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
     ),
 ];
 
+/// Load every YAML rule from a directory the user passed via `--rules <PATH>`.
+///
+/// Walks one level deep, picks up `*.yml` and `*.yaml` files, parses and compiles each. Errors
+/// surface the offending file path so authors can find their typo.
+///
+/// # Errors
+/// Returns an error if the directory cannot be read, or if any rule file fails to parse or
+/// compile.
+pub fn load_rules_from_dir(path: &std::path::Path) -> Result<Vec<Box<dyn Rule>>> {
+    use std::ffi::OsStr;
+
+    let mut rules: Vec<Box<dyn Rule>> = Vec::new();
+    let read_dir = std::fs::read_dir(path)
+        .with_context(|| format!("reading rule pack directory {}", path.display()))?;
+
+    for entry in read_dir {
+        let entry = entry.with_context(|| format!("walking {}", path.display()))?;
+        let p = entry.path();
+        if !p.is_file() {
+            continue;
+        }
+        let ext = p.extension().and_then(OsStr::to_str).unwrap_or("");
+        if !matches!(ext, "yml" | "yaml") {
+            continue;
+        }
+        let src =
+            std::fs::read_to_string(&p).with_context(|| format!("reading {}", p.display()))?;
+        let yr: YamlRule =
+            serde_yml::from_str(&src).with_context(|| format!("parsing rule {}", p.display()))?;
+        let rr =
+            RegexRule::from_yaml(yr).with_context(|| format!("compiling rule {}", p.display()))?;
+        rules.push(Box::new(rr));
+    }
+
+    Ok(rules)
+}
+
 /// Load every built-in YAML rule. Panics if any built-in rule fails to parse or compile — that is
 /// a developer bug, not a user error, so it should fail loudly at first invocation.
 #[must_use]

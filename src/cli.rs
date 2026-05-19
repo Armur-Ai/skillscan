@@ -127,7 +127,12 @@ impl Cli {
 
 fn run_scan(args: ScanArgs) -> anyhow::Result<ExitCode> {
     let skill = DirectoryLoader::new(&args.path).load()?;
-    let engine = Engine::new(rules::builtin_rules());
+
+    let mut all_rules = rules::builtin_rules();
+    if let Some(user_pack) = &args.rules {
+        all_rules.extend(rules::yaml::load_rules_from_dir(user_pack)?);
+    }
+    let engine = Engine::new(all_rules);
     let report = engine.scan(&skill);
 
     match args.format {
