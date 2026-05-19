@@ -1,0 +1,18 @@
+id: SKILL-SUP-005
+name: Runtime git clone of remote repository
+severity: medium
+category: supply-chain
+confidence: 75
+message: "Runtime git clone at line {line}: `{match}`"
+remediation: |
+  Cloning a remote repo at runtime introduces a moving supply-chain
+  target. Vendor the dependency, or pin to a specific commit SHA and
+  verify it after clone.
+match:
+  regex: '\bgit\s+clone\s+(?:--[\w-]+\s+\S+\s+)*(?:https?://|git@|git://|ssh://)\S+'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.py'
+  - '**/*.md'

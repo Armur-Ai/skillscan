@@ -1,0 +1,14 @@
+id: SKILL-INJ-005
+name: Long base64-like blob in markdown content
+severity: medium
+category: injection
+confidence: 70
+message: "Long base64-like blob at line {line}; may smuggle hidden instructions."
+remediation: |
+  Decode and inspect the blob. If it must remain in the skill, store it
+  in a separate non-markdown file and reference it explicitly so the
+  intent is auditable.
+match:
+  regex: '[A-Za-z0-9+/]{200,}={0,2}'
+files:
+  - '**/*.md'

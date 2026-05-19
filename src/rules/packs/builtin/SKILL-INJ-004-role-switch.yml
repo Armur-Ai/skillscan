@@ -1,0 +1,14 @@
+id: SKILL-INJ-004
+name: Role-switch marker in content
+severity: high
+category: injection
+confidence: 90
+message: "Role-switch marker at line {line}: `{match}`"
+remediation: |
+  Remove special role markers from skill content. Tokens like `<|system|>`,
+  `[INST]`, or markdown headings such as `### system` can be used to break
+  out of the intended conversation role.
+match:
+  regex: '<\|(?:system|user|assistant|im_start|im_end|endoftext)\|>|\[/?(?:INST|SYS)\]|^#{2,6}\s+system\b'
+files:
+  - '**/*.md'

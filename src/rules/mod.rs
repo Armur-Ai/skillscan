@@ -7,15 +7,19 @@ mod inj_001;
 mod prm_001;
 mod sec_001;
 mod sup_001;
+pub mod yaml;
 
-/// The default rule set shipped with SkillScan. Phase 1 ships 5 rules; Phase 2 widens to 40+.
+/// The default rule set shipped with SkillScan. Combines hand-written Rust rules with regex
+/// rules loaded from the built-in YAML pack (`src/rules/packs/builtin/`).
 #[must_use]
 pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
-    vec![
+    let mut rules: Vec<Box<dyn Rule>> = vec![
         Box::new(cmp_001::DescriptionRule),
         Box::new(prm_001::BashWildcardRule),
         Box::new(inj_001::ZeroWidthRule),
         Box::new(sup_001::CurlPipeShellRule),
         Box::new(sec_001::SecretsRule),
-    ]
+    ];
+    rules.extend(yaml::load_builtin_yaml_rules());
+    rules
 }

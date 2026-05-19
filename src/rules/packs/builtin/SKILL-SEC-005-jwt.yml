@@ -1,0 +1,14 @@
+id: SKILL-SEC-005
+name: JWT-shaped token in bundle content
+severity: low
+category: secrets
+confidence: 60
+message: "JWT-shaped string at line {line}: may be a leaked token."
+remediation: |
+  JWTs often carry session or service tokens. Confirm whether the value
+  is an example or a real credential, and remove if real. If it is an
+  example, replace with a placeholder so static scanners can ignore it.
+match:
+  regex: '\beyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b'
+files:
+  - '**/*'

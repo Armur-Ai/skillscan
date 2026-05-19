@@ -1,0 +1,14 @@
+id: SKILL-INJ-007
+name: Instruction-shaped phrase hidden in HTML comment
+severity: high
+category: injection
+confidence: 75
+message: "HTML comment contains instruction-shaped phrase at line {line}: `{match}`"
+remediation: |
+  Markdown rendering hides HTML comments from humans, but agents may
+  still parse them. Move legitimate instructions to plain text or remove
+  the comment.
+match:
+  regex: '(?i)<!--[^>]*(?:please|ignore|instruction|you must|act as|do this|do not tell|forget)[^>]*-->'
+files:
+  - '**/*.md'

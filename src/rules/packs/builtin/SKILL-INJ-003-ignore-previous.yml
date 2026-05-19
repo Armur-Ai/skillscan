@@ -1,0 +1,16 @@
+id: SKILL-INJ-003
+name: Prompt-injection trigger phrase
+severity: high
+category: injection
+confidence: 85
+message: "Possible prompt-injection trigger at line {line}: `{match}`"
+remediation: |
+  Quote or paraphrase the phrase. If you must document prompt-injection
+  attacks, place the phrase inside a fenced code block so downstream
+  agents do not treat it as instruction.
+references:
+  - https://genai.owasp.org/llmrisk/llm01-prompt-injection/
+match:
+  regex: '(?i)ignore (?:all |any |the )?(?:previous|prior|above|earlier) (?:instruction|prompt|message|direction|system message|system prompt)s?'
+files:
+  - '**/*.md'

@@ -1,0 +1,17 @@
+id: SKILL-OBF-001
+name: Dynamic code execution (eval/exec)
+severity: high
+category: obfuscation
+confidence: 80
+message: "Dynamic code execution at line {line}: `{match}`"
+remediation: |
+  `eval` and `exec` of a string allow arbitrary code execution and are a
+  common obfuscation vehicle. Refactor to direct calls, or remove. A
+  proper AST-based check is on the roadmap to reduce false positives.
+match:
+  regex: '\b(?:eval|exec)\s*\('
+files:
+  - '**/*.py'
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'

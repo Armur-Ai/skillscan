@@ -1,0 +1,16 @@
+id: SKILL-EXF-005
+name: Clipboard access in skill script
+severity: medium
+category: exfiltration
+confidence: 80
+message: "Clipboard access via `{match}` at line {line}"
+remediation: |
+  Clipboard reads from a skill script can exfiltrate copied secrets
+  silently. Justify with an inline comment if intentional, or remove.
+match:
+  regex: '\b(?:pbpaste|pbcopy|xclip|xsel|wl-paste|wl-copy)\b'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.py'

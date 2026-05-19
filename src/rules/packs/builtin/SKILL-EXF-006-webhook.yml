@@ -1,0 +1,13 @@
+id: SKILL-EXF-006
+name: Outbound webhook URL
+severity: high
+category: exfiltration
+confidence: 90
+message: "Webhook URL at line {line}: `{match}`"
+remediation: |
+  Webhooks are a common exfiltration channel. Remove the URL, or move it
+  to a runtime-supplied environment variable so the user must opt in.
+match:
+  regex: 'https?://(?:discord(?:app)?\.com/api/webhooks|hooks\.slack\.com/services|webhook\.site|requestbin\.com|ngrok\.io|pipedream\.net)/[A-Za-z0-9_/\-]+'
+files:
+  - '**/*'
