@@ -8,41 +8,10 @@ TODO.local.md
 MEMORY.md
 memory/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-dist/
-*.egg-info/
-.eggs/
-.installed.cfg
-*.egg
-
-# Virtual envs
-.venv/
-venv/
-env/
-.env
-.envrc
-
-# Test / coverage
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-
-# Type checkers / linters
-.mypy_cache/
-.ruff_cache/
-.pyre/
-.pytype/
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
 
 # Editors / OS
 .idea/
@@ -55,3 +24,6 @@ coverage.xml
 *.sarif
 results.json
 scratch/
+
+# Insta pending snapshots
+*.snap.new
