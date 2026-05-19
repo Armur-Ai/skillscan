@@ -35,6 +35,8 @@ regex = "1.11"
 globset = "0.4"
 sha2 = "0.10"
 hex = "0.4"
+tree-sitter = "0.25"
+tree-sitter-python = "0.23"
 
 [dev-dependencies]
 assert_cmd = "2.0"

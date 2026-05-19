@@ -5,6 +5,9 @@ use crate::engine::Rule;
 mod cmp_001;
 mod cmp_002;
 mod cmp_003;
+mod cq_001;
+mod cq_002;
+mod cq_003;
 mod inj_001;
 mod prm_001;
 mod prm_002;
@@ -33,6 +36,9 @@ pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
         Box::new(inj_001::ZeroWidthRule),
         Box::new(sup_001::CurlPipeShellRule),
         Box::new(sec_001::SecretsRule),
+        Box::new(cq_001::SubprocessShellTrueRule),
+        Box::new(cq_002::OsSystemRule),
+        Box::new(cq_003::EvalExecAstRule),
     ];
     rules.extend(yaml::load_builtin_yaml_rules());
     rules

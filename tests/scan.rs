@@ -632,6 +632,107 @@ fn credential_dir_read_in_script_is_flagged() {
 }
 
 #[test]
+fn subprocess_shell_true_is_flagged_via_ast() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-subproc\n\
+             description: A skill using subprocess shell=True for CQ-001 AST testing.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad Subproc\n",
+        ),
+        (
+            "run.py",
+            "import subprocess\nsubprocess.run('ls ' + path, shell=True)\n",
+        ),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CQ-001"));
+}
+
+#[test]
+fn os_system_call_is_flagged_via_ast() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-system\n\
+             description: A skill calling os.system for CQ-002 AST rule testing coverage.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad System\n",
+        ),
+        ("run.py", "import os\nos.system('rm -rf /tmp/junk')\n"),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CQ-002"));
+}
+
+#[test]
+fn ast_eval_is_more_precise_than_regex() {
+    // The string "eval(" appears in a comment but there's no actual eval call. The regex-based
+    // OBF-001 still fires; the AST-based CQ-003 does NOT because there's no call expression.
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: just-docs\n\
+             description: A skill whose code only mentions eval in a comment for CQ-003 precision.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Docs Only\n",
+        ),
+        ("hint.py", "# do not use eval( on user input\nprint('hello')\n"),
+    ]);
+    let output = bin().arg("scan").arg(dir.path()).output().expect("invoke");
+    let stdout = String::from_utf8(output.stdout).expect("utf-8");
+    assert!(
+        !stdout.contains("SKILL-CQ-003"),
+        "CQ-003 should not fire on a comment-only mention of eval"
+    );
+}
+
+#[test]
+fn ast_eval_fires_on_real_call() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-eval\n\
+             description: A skill that calls eval with a dynamic argument for CQ-003 testing.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad Eval\n",
+        ),
+        ("run.py", "import sys\nresult = eval(sys.stdin.read())\n"),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CQ-003"));
+}
+
+#[test]
 fn pickle_loads_in_python_is_flagged() {
     let dir = make_skill(&[
         (
