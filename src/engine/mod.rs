@@ -86,27 +86,20 @@ impl Engine {
     /// A rule that panics produces a `SKILL-ENG-001` finding rather than crashing the scan.
     #[must_use]
     pub fn scan(&self, skill: &Skill) -> Report {
-        let start = Instant::now();
-        let mut findings = Vec::new();
+        use rayon::prelude::*;
 
-        for rule in &self.rules {
-            match catch_unwind(AssertUnwindSafe(|| rule.check(skill))) {
-                Ok(rule_findings) => findings.extend(rule_findings),
-                Err(_) => {
-                    findings.push(Finding {
-                        rule_id: "SKILL-ENG-001".into(),
-                        severity: Severity::Medium,
-                        confidence: 100,
-                        file: PathBuf::new(),
-                        span: None,
-                        message: format!("Rule {} panicked during scan", rule.meta().id),
-                        remediation: "Open an issue: https://github.com/Armur-Ai/skillscan/issues"
-                            .into(),
-                        references: vec![],
-                    });
+        let start = Instant::now();
+        let mut findings: Vec<Finding> = self
+            .rules
+            .par_iter()
+            .flat_map(|rule| {
+                let rule_id = rule.meta().id;
+                match catch_unwind(AssertUnwindSafe(|| rule.check(skill))) {
+                    Ok(rule_findings) => rule_findings,
+                    Err(_) => vec![panic_finding(rule_id)],
                 }
-            }
-        }
+            })
+            .collect();
 
         findings.sort_by(|a, b| {
             let aline = a.span.as_ref().map_or(0, |s| s.line);
@@ -126,5 +119,18 @@ impl Engine {
             stats: ScanStats::new(skill.files.len(), self.rules.len(), duration),
             ruleset_hash: self.ruleset_hash.clone(),
         }
+    }
+}
+
+fn panic_finding(rule_id: &'static str) -> Finding {
+    Finding {
+        rule_id: "SKILL-ENG-001".into(),
+        severity: Severity::Medium,
+        confidence: 100,
+        file: PathBuf::new(),
+        span: None,
+        message: format!("Rule {rule_id} panicked during scan"),
+        remediation: "Open an issue: https://github.com/Armur-Ai/skillscan/issues".into(),
+        references: vec![],
     }
 }
