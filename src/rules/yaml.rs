@@ -212,6 +212,22 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-OBF-002",
         include_str!("packs/builtin/SKILL-OBF-002-hex-blob.yml"),
     ),
+    (
+        "SKILL-SEC-003",
+        include_str!("packs/builtin/SKILL-SEC-003-slack-token.yml"),
+    ),
+    (
+        "SKILL-SEC-004",
+        include_str!("packs/builtin/SKILL-SEC-004-stripe-key.yml"),
+    ),
+    (
+        "SKILL-EXF-002",
+        include_str!("packs/builtin/SKILL-EXF-002-dns-subdomain.yml"),
+    ),
+    (
+        "SKILL-OBF-004",
+        include_str!("packs/builtin/SKILL-OBF-004-compile-dynamic.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.

@@ -1,0 +1,16 @@
+id: SKILL-SEC-004
+name: Stripe live API key in bundle content
+severity: critical
+category: secrets
+confidence: 98
+message: "Stripe live API key shape at line {line}; rotate immediately."
+remediation: |
+  Stripe live keys allow real money movement. Rotate in the Stripe
+  dashboard, scan logs for unauthorized use, and remove the key from the
+  bundle. Load from an environment variable at runtime.
+references:
+  - https://stripe.com/docs/keys
+match:
+  regex: '\b(?:sk|pk|rk)_live_[0-9a-zA-Z]{24,}\b'
+files:
+  - '**/*'

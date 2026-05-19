@@ -1,0 +1,14 @@
+id: SKILL-OBF-004
+name: Python compile() of dynamic source
+severity: medium
+category: obfuscation
+confidence: 70
+message: "Dynamic source compilation at line {line}: `{match}`"
+remediation: |
+  `compile()` of a non-literal first argument is a step toward dynamic
+  code execution and a common obfuscation vehicle. Replace with direct
+  calls, or load and review the source explicitly.
+match:
+  regex: '\bcompile\s*\(\s*(?:[a-z_][\w_]*|f?["''])'
+files:
+  - '**/*.py'

@@ -1,0 +1,16 @@
+id: SKILL-SEC-003
+name: Slack token in bundle content
+severity: critical
+category: secrets
+confidence: 95
+message: "Slack token detected at line {line}."
+remediation: |
+  Slack tokens grant access to channel history and outbound posting. Revoke
+  the token in Slack admin and remove it from the bundle; load it from an
+  environment variable at runtime.
+references:
+  - https://api.slack.com/authentication/token-types
+match:
+  regex: '\bxox[abprstu]-[0-9]+-[0-9]+-[0-9a-zA-Z]+'
+files:
+  - '**/*'

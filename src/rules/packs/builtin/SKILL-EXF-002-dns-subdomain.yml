@@ -1,0 +1,18 @@
+id: SKILL-EXF-002
+name: Suspiciously long subdomain in URL or DNS query
+severity: medium
+category: exfiltration
+confidence: 65
+message: "Very long subdomain at line {line}: `{match}` — possible DNS-tunnel exfiltration."
+remediation: |
+  Long subdomain labels are a known DNS-exfiltration channel: the
+  attacker encodes data into a hostname under a domain they control.
+  Confirm whether the value is data being smuggled out via DNS.
+match:
+  regex: '\b[a-zA-Z0-9_\-]{60,}\.(?:com|net|io|sh|cc|me|app|dev|info|org|co)\b'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.py'
+  - '**/*.md'
