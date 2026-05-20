@@ -60,7 +60,7 @@ pub struct ScanArgs {
     #[arg(long)]
     pub quiet: bool,
 
-    /// Print per-rule timing information after the scan. Not yet wired up.
+    /// Print per-rule wall-time profile after the scan (terminal format only).
     #[arg(long)]
     pub profile: bool,
 }
@@ -138,7 +138,13 @@ fn run_scan(args: ScanArgs) -> anyhow::Result<ExitCode> {
     let report = engine.scan(&skill);
 
     match args.format {
-        Format::Term => terminal::print(&report, args.quiet),
+        Format::Term => {
+            if args.profile {
+                terminal::print_with_profile(&report);
+            } else {
+                terminal::print(&report, args.quiet);
+            }
+        }
         Format::Json => json::print(&report)?,
         Format::Sarif => sarif::print(&report, &engine)?,
         Format::Md => markdown::print(&report),

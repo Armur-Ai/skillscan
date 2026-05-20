@@ -12,6 +12,13 @@ pub struct ScanStats {
     pub duration_ms: u128,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleTiming {
+    pub rule_id: String,
+    /// Wall time in microseconds. Sub-millisecond rules are common, so we keep micros.
+    pub duration_us: u64,
+}
+
 /// A scan result, ready to hand to a reporter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Report {
@@ -25,6 +32,9 @@ pub struct Report {
     /// SHA-256 of the loaded rule set, lowercase hex. Two runs with the same input and same
     /// `ruleset_hash` must produce identical findings.
     pub ruleset_hash: String,
+    /// Per-rule wall time. Populated every scan; surfaced to the user only with `--profile`.
+    #[serde(default)]
+    pub rule_timings: Vec<RuleTiming>,
 }
 
 impl Report {

@@ -89,17 +89,30 @@ impl Engine {
         use rayon::prelude::*;
 
         let start = Instant::now();
-        let mut findings: Vec<Finding> = self
+        let per_rule: Vec<(&'static str, std::time::Duration, Vec<Finding>)> = self
             .rules
             .par_iter()
-            .flat_map(|rule| {
+            .map(|rule| {
                 let rule_id = rule.meta().id;
-                match catch_unwind(AssertUnwindSafe(|| rule.check(skill))) {
+                let rule_start = Instant::now();
+                let f = match catch_unwind(AssertUnwindSafe(|| rule.check(skill))) {
                     Ok(rule_findings) => rule_findings,
                     Err(_) => vec![panic_finding(rule_id)],
-                }
+                };
+                (rule_id, rule_start.elapsed(), f)
             })
             .collect();
+
+        let mut findings: Vec<Finding> = Vec::new();
+        let mut rule_timings: Vec<crate::model::RuleTiming> = Vec::with_capacity(per_rule.len());
+        for (id, dur, f) in per_rule {
+            rule_timings.push(crate::model::RuleTiming {
+                rule_id: id.to_string(),
+                duration_us: u64::try_from(dur.as_micros()).unwrap_or(u64::MAX),
+            });
+            findings.extend(f);
+        }
+        rule_timings.sort_by(|a, b| a.rule_id.cmp(&b.rule_id));
 
         findings.sort_by(|a, b| {
             let aline = a.span.as_ref().map_or(0, |s| s.line);
@@ -118,6 +131,7 @@ impl Engine {
             findings,
             stats: ScanStats::new(skill.files.len(), self.rules.len(), duration),
             ruleset_hash: self.ruleset_hash.clone(),
+            rule_timings,
         }
     }
 }

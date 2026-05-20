@@ -107,6 +107,7 @@ mod tests {
                 duration_ms: 4,
             },
             ruleset_hash: "a".repeat(64),
+            rule_timings: vec![],
         }
     }
 

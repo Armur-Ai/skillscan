@@ -10,6 +10,6 @@ pub mod skill;
 
 pub use finding::{Finding, Span};
 pub use frontmatter::Frontmatter;
-pub use report::{Report, ScanStats};
+pub use report::{Report, RuleTiming, ScanStats};
 pub use severity::Severity;
 pub use skill::{FileKind, Skill, SkillFile};

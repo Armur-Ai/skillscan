@@ -4,6 +4,15 @@ use crate::model::{Finding, Report, Severity};
 
 /// Print a `Report` to stdout in a human-readable format.
 pub fn print(report: &Report, quiet: bool) {
+    print_inner(report, quiet, false);
+}
+
+/// Print a `Report` with the per-rule profile appended.
+pub fn print_with_profile(report: &Report) {
+    print_inner(report, false, true);
+}
+
+fn print_inner(report: &Report, quiet: bool, profile: bool) {
     if !quiet {
         println!(
             "SkillScan v{}  •  rules: {}  •  target: {}",
@@ -42,6 +51,17 @@ pub fn print(report: &Report, quiet: bool) {
         "Scanned {} files in {}ms.",
         report.stats.files_scanned, report.stats.duration_ms
     );
+
+    if profile {
+        println!();
+        println!("Profile (per-rule wall time, top 10 slowest):");
+        let mut timings: Vec<&crate::model::RuleTiming> = report.rule_timings.iter().collect();
+        timings.sort_by_key(|t| std::cmp::Reverse(t.duration_us));
+        for t in timings.iter().take(10) {
+            let ms = t.duration_us as f64 / 1000.0;
+            println!("  {:<16} {:>8.3} ms", t.rule_id, ms);
+        }
+    }
 }
 
 fn print_finding(f: &Finding) {
