@@ -1,0 +1,226 @@
+//! Single-file HTML reporter — no external assets so it survives email/Slack/Notion roundtrips.
+
+use std::fmt::Write;
+
+use crate::model::{Finding, Report, Severity};
+
+const STYLE: &str = r#"
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 1100px; margin: 2em auto; padding: 0 1em; color: #222; }
+h1 { font-size: 1.6em; margin: 0 0 0.25em; }
+.meta { color: #666; font-size: 0.9em; margin-bottom: 1.5em; }
+.summary { display: flex; gap: 0.75em; margin: 1em 0 1.5em; flex-wrap: wrap; }
+.pill { padding: 0.35em 0.8em; border-radius: 999px; font-size: 0.85em; background: #f0f0f0; }
+.pill.critical { background: #5a0000; color: #fff; }
+.pill.high     { background: #c00;    color: #fff; }
+.pill.medium   { background: #c80;    color: #fff; }
+.pill.low      { background: #08c;    color: #fff; }
+.pill.info     { background: #888;    color: #fff; }
+table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.95em; }
+th, td { text-align: left; padding: 0.55em 0.5em; border-bottom: 1px solid #eee; vertical-align: top; }
+th { background: #fafafa; font-weight: 600; }
+.sev { font-weight: 600; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.05em; }
+.sev-critical { color: #5a0000; }
+.sev-high     { color: #c00; }
+.sev-medium   { color: #c80; }
+.sev-low      { color: #08c; }
+.sev-info     { color: #666; }
+code { background: #f4f4f4; padding: 0.1em 0.35em; border-radius: 3px; font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 0.9em; }
+.remediation { border: 1px solid #eee; border-radius: 6px; padding: 0.9em 1em; margin: 0.75em 0; }
+.remediation h3 { margin: 0 0 0.4em; font-size: 1em; }
+.foot { color: #888; font-size: 0.85em; margin-top: 2em; border-top: 1px solid #eee; padding-top: 0.75em; }
+"#;
+
+/// Print a `Report` as a self-contained HTML page on stdout.
+pub fn print(report: &Report) {
+    println!("{}", render(report));
+}
+
+fn render(report: &Report) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "<!DOCTYPE html>");
+    let _ = writeln!(out, "<html lang=\"en\"><head><meta charset=\"utf-8\">");
+    let _ = writeln!(
+        out,
+        "<title>SkillScan report — {}</title>",
+        html_escape(&report.target.display().to_string())
+    );
+    let _ = writeln!(out, "<style>{STYLE}</style></head><body>");
+
+    let _ = writeln!(out, "<h1>SkillScan report</h1>");
+    let _ = writeln!(out, "<div class=\"meta\">");
+    let _ = writeln!(
+        out,
+        "Target: <code>{}</code> — SkillScan v{} — {} rules — scanned in {} ms",
+        html_escape(&report.target.display().to_string()),
+        html_escape(&report.skillscan_version),
+        report.stats.rules_run,
+        report.stats.duration_ms,
+    );
+    let _ = writeln!(
+        out,
+        "<br>Ruleset hash: <code>{}</code>",
+        html_escape(&report.ruleset_hash)
+    );
+    let _ = writeln!(out, "</div>");
+
+    let counts = severity_counts(&report.findings);
+    let _ = writeln!(out, "<div class=\"summary\">");
+    for (label, n) in &counts {
+        if *n == 0 {
+            continue;
+        }
+        let _ = writeln!(out, "<span class=\"pill {label}\">{n} {label}</span>");
+    }
+    if report.findings.is_empty() {
+        let _ = writeln!(out, "<span class=\"pill\">No findings</span>");
+    }
+    let _ = writeln!(out, "</div>");
+
+    if report.findings.is_empty() {
+        let _ = writeln!(out, "<p>Skill is clean.</p>");
+        let _ = writeln!(out, "</body></html>");
+        return out;
+    }
+
+    let _ = writeln!(out, "<h2>Findings</h2>");
+    let _ = writeln!(
+        out,
+        "<table><thead><tr><th>Severity</th><th>Rule</th><th>Message</th><th>Location</th></tr></thead><tbody>"
+    );
+    for f in &report.findings {
+        let sev = severity_label(f.severity);
+        let _ = writeln!(
+            out,
+            "<tr><td><span class=\"sev sev-{sev}\">{sev}</span></td><td><code>{rid}</code></td><td>{msg}</td><td><code>{loc}</code></td></tr>",
+            rid = html_escape(&f.rule_id),
+            msg = html_escape(&f.message),
+            loc = html_escape(&location(f)),
+        );
+    }
+    let _ = writeln!(out, "</tbody></table>");
+
+    let _ = writeln!(out, "<h2>Remediation</h2>");
+    let mut seen = std::collections::BTreeSet::new();
+    for f in &report.findings {
+        if !seen.insert(f.rule_id.as_str()) {
+            continue;
+        }
+        let _ = writeln!(out, "<div class=\"remediation\">");
+        let _ = writeln!(
+            out,
+            "<h3><code>{}</code> — <span class=\"sev sev-{sev}\">{sev}</span></h3>",
+            html_escape(&f.rule_id),
+            sev = severity_label(f.severity),
+        );
+        let _ = writeln!(out, "<p>{}</p>", html_escape(&f.remediation));
+        let _ = writeln!(out, "</div>");
+    }
+
+    let _ = writeln!(
+        out,
+        "<div class=\"foot\">Generated by <a href=\"https://github.com/Armur-Ai/skillscan\">SkillScan</a>.</div>"
+    );
+    let _ = writeln!(out, "</body></html>");
+    out
+}
+
+fn severity_label(s: Severity) -> &'static str {
+    match s {
+        Severity::Critical => "critical",
+        Severity::High => "high",
+        Severity::Medium => "medium",
+        Severity::Low => "low",
+        Severity::Info => "info",
+    }
+}
+
+fn severity_counts(findings: &[Finding]) -> [(&'static str, usize); 5] {
+    let mut counts = [
+        ("critical", 0usize),
+        ("high", 0),
+        ("medium", 0),
+        ("low", 0),
+        ("info", 0),
+    ];
+    for f in findings {
+        let i = match f.severity {
+            Severity::Critical => 0,
+            Severity::High => 1,
+            Severity::Medium => 2,
+            Severity::Low => 3,
+            Severity::Info => 4,
+        };
+        counts[i].1 += 1;
+    }
+    counts
+}
+
+fn location(f: &Finding) -> String {
+    match &f.span {
+        Some(s) => format!("{}:{}:{}", f.file.display(), s.line, s.col),
+        None => f.file.display().to_string(),
+    }
+}
+
+fn html_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::*;
+    use crate::model::{Finding, Report, ScanStats};
+
+    fn report_with(findings: Vec<Finding>) -> Report {
+        Report {
+            schema_version: 1,
+            skillscan_version: "0.1.0".into(),
+            target: PathBuf::from("/tmp/x"),
+            findings,
+            stats: ScanStats {
+                files_scanned: 1,
+                rules_run: 1,
+                duration_ms: 4,
+            },
+            ruleset_hash: "a".repeat(64),
+            rule_timings: vec![],
+        }
+    }
+
+    #[test]
+    fn empty_report_renders_clean() {
+        let s = render(&report_with(vec![]));
+        assert!(s.contains("<!DOCTYPE html>"));
+        assert!(s.contains("Skill is clean"));
+    }
+
+    #[test]
+    fn escapes_html_special_chars() {
+        let f = Finding {
+            rule_id: "X".into(),
+            severity: Severity::High,
+            confidence: 80,
+            file: PathBuf::from("a.md"),
+            span: None,
+            message: "<script>alert(1)</script>".into(),
+            remediation: "do & better".into(),
+            references: vec![],
+        };
+        let s = render(&report_with(vec![f]));
+        assert!(s.contains("&lt;script&gt;alert(1)&lt;/script&gt;"));
+        assert!(s.contains("do &amp; better"));
+    }
+}

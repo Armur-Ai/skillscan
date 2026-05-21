@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use crate::engine::Engine;
 use crate::loaders::DirectoryLoader;
 use crate::model::Severity;
-use crate::reporters::{json, markdown, sarif, terminal};
+use crate::reporters::{html, json, markdown, sarif, terminal};
 use crate::rules;
 
 /// Security scanner for Claude Skills.
@@ -77,6 +77,7 @@ pub enum Format {
     Json,
     Sarif,
     Md,
+    Html,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
@@ -148,6 +149,7 @@ fn run_scan(args: ScanArgs) -> anyhow::Result<ExitCode> {
         Format::Json => json::print(&report)?,
         Format::Sarif => sarif::print(&report, &engine)?,
         Format::Md => markdown::print(&report),
+        Format::Html => html::print(&report),
     }
 
     let threshold: Severity = args.fail_on.into();
