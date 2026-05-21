@@ -9,6 +9,8 @@ mod cq_001;
 mod cq_002;
 mod cq_003;
 mod cq_004;
+mod cq_005;
+mod cq_006;
 mod inj_001;
 mod inj_009;
 mod prm_001;
@@ -43,6 +45,8 @@ pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
         Box::new(cq_002::OsSystemRule),
         Box::new(cq_003::EvalExecAstRule),
         Box::new(cq_004::UnsafeDeserializationRule),
+        Box::new(cq_005::BashEvalRule),
+        Box::new(cq_006::BashDynamicSourceRule),
     ];
     rules.extend(yaml::load_builtin_yaml_rules());
     rules

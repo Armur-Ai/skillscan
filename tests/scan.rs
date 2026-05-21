@@ -733,6 +733,57 @@ fn ast_eval_fires_on_real_call() {
 }
 
 #[test]
+fn bash_eval_is_flagged_via_ast() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-bash-eval\n\
+             description: A bash script that uses eval for CQ-005 AST testing coverage.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad Bash Eval\n",
+        ),
+        ("run.sh", "#!/bin/bash\nuser=\"$1\"\neval \"$user\"\n"),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CQ-005"));
+}
+
+#[test]
+fn bash_dynamic_source_is_flagged_via_ast() {
+    let dir = make_skill(&[
+        (
+            "SKILL.md",
+            "---\n\
+             name: bad-source\n\
+             description: A bash script that sources a variable path for CQ-006 AST testing.\n\
+             version: 0.1.0\n\
+             license: Apache-2.0\n\
+             allowed-tools:\n  - Read\n\
+             ---\n\
+             # Bad Source\n",
+        ),
+        (
+            "entry.sh",
+            "#!/bin/bash\nFILE=\"/tmp/extra.sh\"\nsource \"$FILE\"\n",
+        ),
+    ]);
+    bin()
+        .arg("scan")
+        .arg(dir.path())
+        .assert()
+        .code(2)
+        .stdout(contains("SKILL-CQ-006"));
+}
+
+#[test]
 fn pickle_loads_in_python_is_flagged() {
     let dir = make_skill(&[
         (
