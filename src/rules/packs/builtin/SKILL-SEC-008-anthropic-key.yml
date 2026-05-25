@@ -1,0 +1,17 @@
+id: SKILL-SEC-008
+name: Anthropic API key in bundle content
+severity: critical
+category: secrets
+confidence: 98
+message: "Anthropic API key shape detected at line {line}; rotate immediately."
+remediation: |
+  Anthropic API keys grant access to the model API and bill against the
+  account. Rotate via the Anthropic Console, audit recent usage, and
+  remove the key from the bundle. Load from `ANTHROPIC_API_KEY` at
+  runtime.
+references:
+  - https://console.anthropic.com/settings/keys
+match:
+  regex: '\bsk-ant-(?:api\d{2,3}|admin\d{2,3})-[A-Za-z0-9_\-]{40,}\b'
+files:
+  - '**/*'

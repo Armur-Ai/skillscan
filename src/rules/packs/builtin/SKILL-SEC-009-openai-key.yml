@@ -1,0 +1,17 @@
+id: SKILL-SEC-009
+name: OpenAI API key in bundle content
+severity: critical
+category: secrets
+confidence: 95
+message: "OpenAI API key shape detected at line {line}; rotate immediately."
+remediation: |
+  OpenAI keys (legacy `sk-…48-chars` or modern `sk-proj-…` / `sk-svcacct-…`)
+  grant access to the model API and bill against the account. Rotate via
+  the OpenAI dashboard, audit recent usage, and remove the key from the
+  bundle. Load from `OPENAI_API_KEY` at runtime.
+references:
+  - https://platform.openai.com/api-keys
+match:
+  regex: '\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_\-]{40,}\b'
+files:
+  - '**/*'

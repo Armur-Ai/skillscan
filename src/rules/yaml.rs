@@ -244,6 +244,18 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-EXF-007",
         include_str!("packs/builtin/SKILL-EXF-007-netcat.yml"),
     ),
+    (
+        "SKILL-INJ-010",
+        include_str!("packs/builtin/SKILL-INJ-010-bidi-controls.yml"),
+    ),
+    (
+        "SKILL-SEC-008",
+        include_str!("packs/builtin/SKILL-SEC-008-anthropic-key.yml"),
+    ),
+    (
+        "SKILL-SEC-009",
+        include_str!("packs/builtin/SKILL-SEC-009-openai-key.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.

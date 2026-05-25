@@ -5,6 +5,7 @@ use crate::engine::Rule;
 mod cmp_001;
 mod cmp_002;
 mod cmp_003;
+mod cmp_004;
 mod cq_001;
 mod cq_002;
 mod cq_003;
@@ -31,6 +32,7 @@ pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
         Box::new(cmp_001::DescriptionRule),
         Box::new(cmp_002::VersionRule),
         Box::new(cmp_003::LicenseRule),
+        Box::new(cmp_004::OversizedBundleRule),
         Box::new(prm_001::BashWildcardRule),
         Box::new(prm_002::SensitiveWritePathRule),
         Box::new(prm_003::SensitiveReadPathRule),

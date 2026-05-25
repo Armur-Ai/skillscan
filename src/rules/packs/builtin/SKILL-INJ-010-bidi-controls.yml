@@ -1,0 +1,17 @@
+id: SKILL-INJ-010
+name: Unicode bidirectional override character
+severity: critical
+category: injection
+confidence: 100
+message: "Bidi override codepoint at line {line}; visually masks the surrounding text from humans."
+remediation: |
+  Bidirectional control codepoints (U+202A – U+202E, U+2066 – U+2069)
+  reverse the visual order of characters. They are the basis of the
+  Trojan-Source attack: code that looks one way to a reviewer but parses
+  another way to a compiler/interpreter. Strip them from skill content.
+references:
+  - https://trojansource.codes/
+match:
+  regex: '[\u{202A}\u{202B}\u{202C}\u{202D}\u{202E}\u{2066}\u{2067}\u{2068}\u{2069}]'
+files:
+  - '**/*'
