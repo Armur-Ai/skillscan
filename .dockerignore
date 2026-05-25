@@ -1,0 +1,15 @@
+target/
+.git/
+.github/
+tests/
+docs/
+memory/
+.idea/
+.vscode/
+.DS_Store
+IMPLEMENTATION_PLAN.md
+MEMORY.md
+NOTES.md
+scratch/
+*.sarif
+*.snap.new
