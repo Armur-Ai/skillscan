@@ -3,7 +3,7 @@
 use std::fs;
 use std::path::Path;
 
-use criterion::{Criterion, criterion_group, criterion_main};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 use skillscan::engine::Engine;
 use skillscan::loaders::DirectoryLoader;
@@ -104,5 +104,10 @@ fn bench_loader_only(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_loader_only, bench_scan_clean, bench_scan_realistic);
+criterion_group!(
+    benches,
+    bench_loader_only,
+    bench_scan_clean,
+    bench_scan_realistic
+);
 criterion_main!(benches);
