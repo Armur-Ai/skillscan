@@ -34,11 +34,11 @@ Built in Rust for speed, a single static binary, and zero runtime dependencies.
 ## Features
 
 - **Fast and standalone.** Native Rust binary. No interpreter, no `node_modules`, no `pip install`. A 100-file skill scans in milliseconds.
-- **Multi-layer detection.** Frontmatter linting, content heuristics, tree-sitter AST analysis of bundled scripts, secret scanning, URL reputation, and an optional LLM-assisted pass for subtle prompt-injection patterns.
-- **40+ built-in rules.** Grouped into rule packs: `injection`, `exfiltration`, `permissions`, `supply-chain`, `obfuscation`, `secrets`, `compliance`.
+- **Multi-layer detection.** Frontmatter linting, regex content rules, tree-sitter AST analysis of Python and bash scripts, secret scanning, URL reputation, and an optional LLM-assisted pass for subtle prompt-injection patterns.
+- **50+ built-in rules.** Grouped into 8 categories: `injection`, `permissions`, `exfiltration`, `supply-chain`, `obfuscation`, `secrets`, `compliance`, `code-quality`.
 - **Severity-rated findings.** `critical` / `high` / `medium` / `low` / `info`, with confidence scores and remediation guidance.
 - **SARIF 2.1.0 output.** First-class integration with GitHub Code Scanning, GitLab, and any SARIF-aware viewer.
-- **Multiple report formats.** Rich terminal output, JSON, SARIF, Markdown, HTML.
+- **5 report formats.** Rich terminal output (with `--profile` per-rule timing), JSON, SARIF, Markdown (PR-comment-ready), HTML (single-file).
 - **Scan anything.** Local directories, `.zip` / `.tar.gz` archives, Git URLs, GitHub repos, or live marketplaces.
 - **CI-ready.** Single static binary, deterministic exit codes, `--fail-on` threshold flag, GitHub Action included.
 - **Pluggable.** Write custom rules in YAML or as compiled Rust plugins. Ship private rule packs to your team.
@@ -93,6 +93,9 @@ skillscan scan https://marketplace.example.com/skills/foo.zip
 skillscan scan ./skill --format sarif  > results.sarif
 skillscan scan ./skill --format json   > results.json
 skillscan scan ./skill --format md     > REPORT.md
+skillscan scan ./skill --format html   > report.html
+skillscan scan ./skill --profile                 # term + per-rule timing
+skillscan rules list                              # tabular rule catalog
 ```
 
 ### Use in CI
@@ -104,13 +107,17 @@ on: [push, pull_request]
 jobs:
   scan:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write   # required when sarif-upload is true
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: Armur-Ai/skillscan-action@v1
+      - uses: Armur-Ai/skillscan/.github/actions/scan@main
         with:
           path: ./skills
           fail-on: high
-          sarif-upload: true
+          format: sarif
+          sarif-upload: 'true'
 ```
 
 ## What it checks
@@ -173,10 +180,13 @@ Load with `skillscan scan ./skill --rules ./my-pack`.
 
 ## Roadmap
 
-- [x] CLI skeleton, loaders, engine, terminal/JSON/SARIF reporters
-- [ ] Static rule pack v1 (40+ rules across all categories)
-- [ ] LLM-assisted prompt-injection detector
-- [ ] GitHub Action and pre-commit hook
+- [x] CLI skeleton, loaders, engine, term/JSON/SARIF/Markdown/HTML reporters
+- [x] Static rule pack v1 (50+ rules across 8 categories)
+- [x] tree-sitter Python + bash AST analysis with precision rules
+- [x] Parallel rule execution (`rayon`) + per-rule `--profile`
+- [x] GitHub Action composite + multi-arch Docker image + cross-platform release pipeline
+- [ ] LLM-assisted prompt-injection detector (`--llm`)
+- [ ] Pre-commit hook
 - [ ] Marketplace crawler + public skill index
 - [ ] VS Code extension for inline findings
 - [ ] Sandboxed dynamic analysis (skill behavior in a jailed runner)
