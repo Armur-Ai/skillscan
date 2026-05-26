@@ -4,7 +4,11 @@ All notable changes to SkillScan are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
-Pre-tag work toward `v0.1.0`. Highlights so far:
+_No changes since 0.1.0._
+
+## [0.1.0] — 2026-05-26
+
+First public release.
 
 ### Added
 
@@ -39,9 +43,9 @@ Pre-tag work toward `v0.1.0`. Highlights so far:
 - CI matrix on stable + 1.80 across ubuntu + macos.
 - 71 tests (unit + integration); `cargo test` finishes in < 2s warm.
 
-## [0.1.0] — _unreleased_
+### Also in 0.1.0
 
-First public release. Snapshot of the Unreleased section above will move here on tag.
+- `--llm` opt-in LLM-assisted detection via Claude Haiku 4.5 with prompt caching, disk cache, and a pre-call USD budget guard. Findings appear as `SKILL-LLM-NNN`.
 
 [Unreleased]: https://github.com/Armur-Ai/skillscan/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Armur-Ai/skillscan/releases/tag/v0.1.0
