@@ -1,6 +1,7 @@
 //! Rule execution engine.
 
 pub mod ast;
+pub mod llm;
 
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::PathBuf;

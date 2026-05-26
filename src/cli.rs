@@ -63,6 +63,18 @@ pub struct ScanArgs {
     /// Print per-rule wall-time profile after the scan (terminal format only).
     #[arg(long)]
     pub profile: bool,
+
+    /// Enable the LLM-assisted detection pass. Requires `ANTHROPIC_API_KEY` to be set.
+    #[arg(long)]
+    pub llm: bool,
+
+    /// Maximum USD cost (estimated) before the LLM pass aborts. Default is conservative.
+    #[arg(long, default_value_t = 0.10)]
+    pub llm_budget_usd: f64,
+
+    /// Override the Claude model used by the LLM pass.
+    #[arg(long)]
+    pub llm_model: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -136,7 +148,22 @@ fn run_scan(args: ScanArgs) -> anyhow::Result<ExitCode> {
         all_rules.extend(rules::yaml::load_rules_from_dir(user_pack)?);
     }
     let engine = Engine::new(all_rules);
-    let report = engine.scan(&skill);
+    let mut report = engine.scan(&skill);
+
+    if args.llm {
+        let cfg =
+            crate::engine::llm::LlmConfig::from_env(args.llm_model.clone(), args.llm_budget_usd)?;
+        let llm_findings = crate::engine::llm::analyze(&skill, &cfg)?;
+        report.findings.extend(llm_findings);
+        report.findings.sort_by(|a, b| {
+            let aline = a.span.as_ref().map_or(0, |s| s.line);
+            let bline = b.span.as_ref().map_or(0, |s| s.line);
+            a.file
+                .cmp(&b.file)
+                .then(aline.cmp(&bline))
+                .then(a.rule_id.cmp(&b.rule_id))
+        });
+    }
 
     match args.format {
         Format::Term => {

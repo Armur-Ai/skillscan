@@ -39,6 +39,7 @@ tree-sitter = "0.25"
 tree-sitter-python = "0.23"
 tree-sitter-bash = "0.25"
 rayon = "1.11"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 
 [dev-dependencies]
 assert_cmd = "2.0"
