@@ -1,0 +1,33 @@
+# pre-commit hook manifest for the `pre-commit` framework (https://pre-commit.com).
+#
+# Consumers add this repo to their `.pre-commit-config.yaml`:
+#
+#   repos:
+#     - repo: https://github.com/Armur-Ai/skillscan
+#       rev: v0.1.0
+#       hooks:
+#         - id: skillscan
+#           args: ['./skills', '--fail-on', 'high']
+#
+# The `system` language means the user must have `skillscan` on their PATH already
+# (`cargo install skillscan`, `brew install armur-ai/tap/skillscan`, or the install.sh
+# one-liner). For zero-setup use, switch language to `rust` — pre-commit will build
+# skillscan from source on first run.
+
+- id: skillscan
+  name: skillscan
+  description: Audit Claude Skills for prompt injection, tool abuse, data exfiltration, supply-chain risks.
+  entry: skillscan scan
+  language: system
+  pass_filenames: false
+  always_run: true
+  args: ['.', '--fail-on', 'high']
+
+- id: skillscan-cargo
+  name: skillscan (build from source)
+  description: Same check as `skillscan`, but pre-commit builds skillscan from source instead of relying on a pre-installed binary.
+  entry: skillscan scan
+  language: rust
+  pass_filenames: false
+  always_run: true
+  args: ['.', '--fail-on', 'high']
