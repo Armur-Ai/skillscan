@@ -1,0 +1,19 @@
+id: SKILL-SUP-006
+name: Global npm install at runtime
+severity: medium
+category: supply-chain
+confidence: 80
+message: "Global npm install at line {line}: `{match}` — modifies the user's system."
+remediation: |
+  `npm install -g` writes a package to the user's global node_modules,
+  altering tooling outside the skill's directory and persisting after
+  the skill exits. Pin to a project-local install or vendor the
+  dependency.
+match:
+  regex: '\bnpm\s+(?:i|install)\s+(?:-g|--global)\b'
+files:
+  - '**/*.sh'
+  - '**/*.bash'
+  - '**/*.zsh'
+  - '**/*.md'
+  - '**/*.py'

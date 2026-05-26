@@ -1,0 +1,18 @@
+id: SKILL-EXF-008
+name: Cloud instance-metadata endpoint reference
+severity: high
+category: exfiltration
+confidence: 95
+message: "Cloud metadata endpoint reference at line {line}: `{match}`"
+remediation: |
+  The IMDS endpoints (`169.254.169.254` on AWS/GCP/Azure,
+  `metadata.google.internal`) return short-lived credentials and
+  instance identity. A skill that reaches them is exfiltrating cloud
+  IAM. Remove the reference or document the exact value being fetched
+  and why.
+references:
+  - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+match:
+  regex: '\b(?:169\.254\.169\.254|metadata\.google\.internal|fd00:ec2::254)\b'
+files:
+  - '**/*'

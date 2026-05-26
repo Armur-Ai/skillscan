@@ -256,6 +256,18 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-SEC-009",
         include_str!("packs/builtin/SKILL-SEC-009-openai-key.yml"),
     ),
+    (
+        "SKILL-EXF-008",
+        include_str!("packs/builtin/SKILL-EXF-008-cloud-metadata.yml"),
+    ),
+    (
+        "SKILL-SUP-006",
+        include_str!("packs/builtin/SKILL-SUP-006-npm-global.yml"),
+    ),
+    (
+        "SKILL-OBF-005",
+        include_str!("packs/builtin/SKILL-OBF-005-decompress.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.

@@ -1,0 +1,15 @@
+id: SKILL-OBF-005
+name: Python decompress of opaque payload
+severity: medium
+category: obfuscation
+confidence: 70
+message: "Decompression call at line {line}: `{match}` — may unpack a hidden payload before exec."
+remediation: |
+  `zlib.decompress`, `gzip.decompress`, `bz2.decompress`, and
+  `lzma.decompress` followed by `exec`/`eval` is the canonical
+  packed-payload obfuscation pattern. If the decompressed data is
+  static, ship it expanded; otherwise audit what the input source is.
+match:
+  regex: '\b(?:zlib|gzip|bz2|lzma)\.decompress\s*\('
+files:
+  - '**/*.py'
