@@ -6,6 +6,7 @@ mod cmp_001;
 mod cmp_002;
 mod cmp_003;
 mod cmp_004;
+mod cmp_006;
 mod cq_001;
 mod cq_002;
 mod cq_003;
@@ -22,6 +23,8 @@ mod prm_006;
 mod prm_007;
 mod sec_001;
 mod sup_001;
+mod sup_002;
+mod sup_004;
 pub mod yaml;
 
 /// The default rule set shipped with SkillScan. Combines hand-written Rust rules with regex
@@ -33,6 +36,7 @@ pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
         Box::new(cmp_002::VersionRule),
         Box::new(cmp_003::LicenseRule),
         Box::new(cmp_004::OversizedBundleRule),
+        Box::new(cmp_006::LargeSkillMdRule),
         Box::new(prm_001::BashWildcardRule),
         Box::new(prm_002::SensitiveWritePathRule),
         Box::new(prm_003::SensitiveReadPathRule),
@@ -42,6 +46,8 @@ pub fn builtin_rules() -> Vec<Box<dyn Rule>> {
         Box::new(inj_001::ZeroWidthRule),
         Box::new(inj_009::UnicodeTagRule),
         Box::new(sup_001::CurlPipeShellRule),
+        Box::new(sup_002::UnpinnedPipRule),
+        Box::new(sup_004::PypiTyposquatRule),
         Box::new(sec_001::SecretsRule),
         Box::new(cq_001::SubprocessShellTrueRule),
         Box::new(cq_002::OsSystemRule),

@@ -1,0 +1,15 @@
+id: SKILL-INJ-011
+name: Tool-use markup in skill content
+severity: high
+category: injection
+confidence: 90
+message: "Raw tool-use markup at line {line}: `{match}` — model may interpret literally."
+remediation: |
+  Tags like `<tool_use>`, `<tool_result>`, or `<function_calls>` are
+  parsed by the agent runtime as live tool-call markup. Embedding them
+  in a skill's prompt content can trigger spurious tool invocations.
+  Escape with code fences or remove.
+match:
+  regex: '<(?:tool_use|tool_result|function_calls|function_result|invoke|invocation)\b[^>]*>'
+files:
+  - '**/*.md'

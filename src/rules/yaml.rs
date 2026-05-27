@@ -268,6 +268,10 @@ const BUILTIN_YAML_PACK: &[(&str, &str)] = &[
         "SKILL-OBF-005",
         include_str!("packs/builtin/SKILL-OBF-005-decompress.yml"),
     ),
+    (
+        "SKILL-INJ-011",
+        include_str!("packs/builtin/SKILL-INJ-011-tool-use-markers.yml"),
+    ),
 ];
 
 /// Load every YAML rule from a directory the user passed via `--rules <PATH>`.
